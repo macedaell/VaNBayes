@@ -4,6 +4,8 @@ This GitHub repository includes the simulation studies and data analysis include
 
 Instructions for running each of the simulation studies and data analysis are provided in their respective directories.
 
+Please email eamaceda@ncsu.edu with any questions or bug-reports.
+
 # Citation
 
 If you use VaNBayes, please consider citing the relevant manuscript: Maceda, E., Hector, E. C., Lenzi, A., & Reich, B. J. (2024). A variational neural Bayes framework for inference on intractable posterior distributions. arXiv preprint arXiv:2404.10899.
