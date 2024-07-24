@@ -1,0 +1,2 @@
+
+outline for autologistic scripts: 
