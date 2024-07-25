@@ -12,5 +12,7 @@ If you use VaNBayes, please consider citing the relevant manuscript: Maceda, E.,
 
 # References
 
+
 Parker Trostle, Joseph Guinness, Brian J Reich, A Gaussian-process approximation to a spatial SIR process using moment closures and emulators, Biometrics, Volume 80, Issue 3, September 2024, ujae068, https://doi.org/10.1093/biomtc/ujae068
 
+Zakhar Kabluchko, Martin Schlather, Laurens de Haan "Stationary max-stable fields associated to negative definite functions," The Annals of Probability, Ann. Probab. 37(5), 2042-2065, (September 2009)
