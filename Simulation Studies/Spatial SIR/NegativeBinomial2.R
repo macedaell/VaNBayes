@@ -27,8 +27,8 @@ expit <- function(x){1/(1+exp(-x))}
 act  <- function(x){pmax(x,0)}
 actp <- function(x){x>0}
 
-
-init_NegativeBinomial1 <- function(p,hidden_layers,init_r=0,init_p=1,sigma=0.01){
+# NOTE: mu must be large and sd must 
+init_NegativeBinomial2 <- function(p,hidden_layers,init_mn=10,init_sd=init_mn,sigma=0.01){
   node_sequence = c(p,hidden_layers,2) # 2 outputs: mu and sigma
   # initialize with rnorm weights, going layer by layer; sigma is the sd of the rnorm weights
   num_weight_layers = length(node_sequence) - 1
@@ -43,13 +43,14 @@ init_NegativeBinomial1 <- function(p,hidden_layers,init_r=0,init_p=1,sigma=0.01)
   
   # print(bias_index-2)
   
-  W[[bias_index - 2]][1,] = W[[bias_index - 2]][1,] + init_r
-  W[[bias_index - 2]][2,] = W[[bias_index - 2]][2,] + init_p
+  W[[bias_index - 2]][1,] = W[[bias_index - 2]][1,] + init_mn
+  W[[bias_index - 2]][2,] = W[[bias_index - 2]][2,] + log((init_mn^2)/(init_sd^2 - init_mn))
+  # W[[bias_index - 2]][2,] = W[[bias_index - 2]][2,]
   
 return(W)}
 
 
-predict_NegativeBinomial1 <- function(w,x){
+predict_NegativeBinomial2 <- function(w,x){
   
   # forward pass the inputs X through the hidden layers (linear combo, bias, activation function)
   for (i in seq(1, length(w)-2, by = 2)){
@@ -61,16 +62,16 @@ predict_NegativeBinomial1 <- function(w,x){
   next_index = length(w) - 1
   x = sweep(x%*%w[[next_index+1]] , 2, w[[next_index]], "+")
   
-return(list(r=exp(x[,1]),p=expit(x[,2])))}
+  return(list(mu=x[,1],psi=exp(x[,2])))}
 
 
-loss_NegativeBinomial1 <- function(w,x,y){
-  l <- predict_NegativeBinomial1(w,x)
-  l <- -sum(dnbinom(y,size=l$r,prob=l$p,log=TRUE))
+loss_NegativeBinomial2 <- function(w,x,y){
+  l <- predict_NegativeBinomial2(w,x)
+  l <- -sum(dnbinom(y,mu=l$mu,size=l$psi,log=TRUE))
   return(l)}
 
 
-grad_NegativeBinomial1 <- function(w,x,y,transfer_learning = FALSE,priorweights = rep(1,length(y))){
+grad_NegativeBinomial2 <- function(w,x,y,transfer_learning = FALSE,priorweights = rep(1,length(y))){
   
   # forward pass ####
   
@@ -99,9 +100,9 @@ grad_NegativeBinomial1 <- function(w,x,y,transfer_learning = FALSE,priorweights 
   m3 <- output[,1]
   s3 <- output[,2]
   
-  dldm3  <- (digamma(y+exp(m3)) - digamma(exp(m3)) + log(expit(s3)))*exp(m3)
+  dldm3  <- (y/m3 - 1)*(exp(s3)/(exp(s3)+m3))
   dldm3  <- -dldm3
-  dlds3  <- (y+exp(m3))*(-expit(s3)) + exp(m3)
+  dlds3  <- digamma(y+exp(s3))*exp(s3) - digamma(exp(s3))*exp(s3)+exp(s3)*log(exp(s3)/(exp(s3)+m3)) + m3*(exp(s3)/(exp(s3)+m3)) - y*(exp(s3)/(exp(s3)+m3))
   dlds3  <- -dlds3
   
   dldoutput <- cbind(dldm3, dlds3)
@@ -153,9 +154,9 @@ if(FALSE){ # Check gradient
  x  <- matrix(rnorm(n*p),n,p)
  y  <- rbinom(n,10,0.5)
 
- w   <- init_NegativeBinomial1(p,c(L1,L2))
- test <- predict_NegativeBinomial1(w,x)
- l0  <- loss_NegativeBinomial1(w,x,y)
+ w   <- init_NegativeBinomial2(p,c(L1,L2),init_mn = mean(y))
+ test <- predict_NegativeBinomial2(w,x)
+ l0  <- loss_NegativeBinomial2(w,x,y)
 
  numgrad <- function(w,x,y,k,l0,eps){
    g <- w[[k]]
@@ -163,14 +164,14 @@ if(FALSE){ # Check gradient
       for(i in 1:length(g)){
         We         <- w
         We[[k]][i] <- We[[k]][i] + eps
-        g[i]       <- loss_NegativeBinomial1(We,x,y)
+        g[i]       <- loss_NegativeBinomial2(We,x,y)
       }
    }
    if(is.matrix(g)){
       for(i in 1:nrow(g)){for(j in 1:ncol(g)){
         We <- w
         We[[k]][i,j] <- We[[k]][i,j] + eps
-        g[i,j] <- loss_NegativeBinomial1(We,x,y)
+        g[i,j] <- loss_NegativeBinomial2(We,x,y)
       }}
    }
  return((g-l0)/eps)}
@@ -179,7 +180,7 @@ if(FALSE){ # Check gradient
  eps <- 10^(-8)
  g1   <- w
  for(k in 1:length(g1)){g1[[k]]<-numgrad(w,x,y,k,l0,eps)}
- g2 <- grad_NegativeBinomial1(w,x,y)
+ g2 <- grad_NegativeBinomial2(w,x,y)
  for(k in 1:length(g1)){
    print(k)
    print(g1[[k]])
