@@ -76,4 +76,5 @@ SSVS <- function(y,x,xp=NULL,init_beta=NULL,init_int=NULL,init_sigma2=NULL,
     output <- list(beta=keep.beta,sigma=sqrt(keep.sigma2),
                    int=keep.int,p_in=keep.p_in,
                    pred=keep.pred)
+
 return(output)}
