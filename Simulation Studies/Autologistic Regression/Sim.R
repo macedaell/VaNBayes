@@ -175,4 +175,3 @@ print(round(cov,2))
 
 boxplot(q[,,2],xlab="Parameter",ylab="Post median")
    lines(theta0,col=2,lwd=2)
-
