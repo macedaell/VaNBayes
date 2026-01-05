@@ -3,7 +3,7 @@ library(MASS)
 library(spam)
 
 # This is the main function that runs the simulation study
-setwd("S:\\Desktop\\Autologistic\\Sim\\")
+# setwd("S:\\Desktop\\Autologistic\\Sim\\")
 source("adam.R")
 source("hetnorm2.R")
 source("autologistic.R")
